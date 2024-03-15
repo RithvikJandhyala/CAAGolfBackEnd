@@ -49,9 +49,8 @@ public class CourseService {
 		repository.save(gc);
 		return "Added " + gc.getName()+" With ID " + gc.getId();
     }
-	public String deleteCourse(long id) {
-		repository.deleteById(null);
-		System.out.print("delete " + id);
-		return "Player deleted with  " + id;
+	public String deleteCourse(int id) {
+		repository.deleteById(id);
+		return "Course deleted with  " + id;
 	}
 }

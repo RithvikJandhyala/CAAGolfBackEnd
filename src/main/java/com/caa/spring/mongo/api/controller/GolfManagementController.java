@@ -164,6 +164,12 @@ public class GolfManagementController {
 		return courseService.getCourses();
 	}
 	
+	@GetMapping("/deleteCourse/{id}")
+	public String deleteCourse(@PathVariable int id) {
+		return courseService.deleteCourse(id);
+	}
+	
+	
 	@GetMapping("/findAllUsers")
 	public List<User> getUsers(){
 		return userService.getUsers();
