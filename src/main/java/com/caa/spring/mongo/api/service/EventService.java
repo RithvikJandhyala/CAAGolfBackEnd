@@ -1,8 +1,11 @@
 package com.caa.spring.mongo.api.service;
 import java.util.ArrayList;
+import java.util.Collections;
+
 import java.util.Comparator;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -13,11 +16,13 @@ import org.springframework.stereotype.Service;
 import com.caa.spring.mongo.api.model.Event;
 import com.caa.spring.mongo.api.model.EventScoring;
 import com.caa.spring.mongo.api.model.Match;
+import com.caa.spring.mongo.api.model.MatchDaySummary;
 import com.caa.spring.mongo.api.model.Player;
 import com.caa.spring.mongo.api.model.School;
 import com.caa.spring.mongo.api.model.Team;
 import com.caa.spring.mongo.api.repository.EventRepository;
 import com.caa.spring.mongo.api.repository.EventScoringRepository;
+import com.caa.spring.mongo.api.repository.EventScoringRepository.PlayerAverageScore;
 import com.caa.spring.mongo.api.repository.PlayerRepository;
 import com.caa.spring.mongo.api.repository.SchoolRepository;
 
@@ -63,24 +68,42 @@ public class EventService {
 		return "Event deleted with " + id;
 	}
 	
+	public String updatePlayerAverageScores(){ 
+		List<EventScoring> eventScorings = eventScoringRepository.findAll();
+		List<Player> players = playerRepository.findAll();
+		Map<Integer, Double> averageScoresPerPlayer = eventScorings.stream()
+	            .collect(Collectors.groupingBy(EventScoring::getPlayerID,
+	                                           Collectors.averagingInt(EventScoring::getPlayerScore)));
+		for (Map.Entry<Integer, Double> entry : averageScoresPerPlayer.entrySet()) {
+            Integer playerId = entry.getKey();
+            Double averageScore = entry.getValue();
+            for (Player player : players) {
+                if (player.getPlayerID() == playerId) {
+                	player.setRank((int) Math.round(averageScore));
+                    break;
+                }
+            }
+        }
+		playerRepository.saveAll(players);
+		return "updated Player Average Scores";
+	}
+		
 	public String saveEventScorings(List<EventScoring> eventScorings) {
 		int eventID = eventScorings.get(0).getEventID();
 		Event event = repository.findById((long) eventID).get();
 		event.setSlots(event.getSlots()-eventScorings.size());
 		repository.save(event);
 		eventScoringRepository.saveAll(eventScorings);
+		updatePlayerAverageScores();
 		return "Event Scorings succesfully saved";
 	}
 	
 	public String updateEventScorings(List<EventScoring> eventScorings) {
 		System.out.println("Event Scorings succesfully updated");
 		eventScoringRepository.saveAll(eventScorings);
+		updatePlayerAverageScores();
 		return "Event Updated succesfully saved";
 	}
-	
-	
-	
-	
 	
 	public String saveSingleEventScoring(EventScoring eventScoring) {
 		System.out.println("Reached SEC");
@@ -91,7 +114,6 @@ public class EventService {
 		List<EventScoring> eventScorings = eventScoringRepository.findAll();
 		List<Event> events = repository.findAll();
 		List<Player> players = playerRepository.findAll();
-		
 		for (EventScoring eventScoring : eventScorings) {
 		    Optional<Event> optionalEvent = events.stream()
 		            .filter(event -> eventScoring.getEventID() == event.getId())
@@ -108,12 +130,9 @@ public class EventService {
 		        eventScoring.setPlayerDivision(player.getDivision());
 		        eventScoring.setPlayerSchool(player.getSchool());
 		        eventScoring.setPlayerName(player.getName());
-		        
-		       
-		       
 		    });
 		}
-		
+		eventScorings.sort(Comparator.comparing(EventScoring	::getEventID));
 		return eventScorings;
 	}
 	public List<EventScoring>  getEventScoringsByDivision(String division){
@@ -131,7 +150,7 @@ public class EventService {
 		}
 	}
 	
-	
+	/*
 	public List<Event> getEventsBySchool(String desiredSchoolName){
 		List<EventScoring> eventScorings = eventScoringRepository.findAll();
 		School school = schoolRepository.findByName(desiredSchoolName);
@@ -149,7 +168,34 @@ public class EventService {
 	     }
 	    eventsBySchool.addAll(eventsBySchoolSet);  
 		return eventsBySchool;
+	}*/
+	
+	public List<Event> getEventsBySchool(String desiredSchoolName){
+		List<Event> eventsBySchool = repository.findEventByHostSchool(desiredSchoolName);
+		// Extract just the event IDs
+        List<Long> eventIds = eventsBySchool.stream()
+                                       .map(Event::getId)
+                                       .collect(Collectors.toList());
+		List<EventScoring> eventScorings = eventScoringRepository.findByEventIDIn(eventIds);
+		List<Event> eventsBySchoolEmptyScore = new ArrayList<>();
+		Set<Event> eventsBySchoolEmptyScoreSet = new HashSet<>();
+	    for (EventScoring eventScoring : eventScorings) {
+	            if (eventScoring.getPlayerScore() == 0) {
+	                Optional<Event> optionalEvent = eventsBySchool.stream()
+	                        .filter(event -> event.getId() == eventScoring.getEventID())
+	                        .findFirst();
+	                optionalEvent.ifPresent(eventsBySchoolEmptyScoreSet::add);
+	            }
+	     }
+	    eventsBySchoolEmptyScore.addAll(eventsBySchoolEmptyScoreSet);  
+		return eventsBySchoolEmptyScore;
 	}
+	
+	
+	
+	
+	
+	
 	
 	public List<Integer> getSignedUpEventIDsBySchool(String desiredSchoolName){
 		List<EventScoring> eventScorings = eventScoringRepository.findAll();
@@ -177,12 +223,22 @@ public class EventService {
 			    .collect(Collectors.toList());
 		List<EventScoring> eventScoringsByEventSchool = new ArrayList<>();
 		for (EventScoring eventScoring : eventScoringsByEvent) {
-            if (eventScoring.getPlayerID() >= schoolID && eventScoring.getPlayerID() < schoolID + 1000) {
+			eventScoringsByEventSchool.add(eventScoring);
+            /*if (eventScoring.getPlayerID() >= schoolID && eventScoring.getPlayerID() < schoolID + 1000) {
             	eventScoringsByEventSchool.add(eventScoring);
-            }
+            }*/
 		}
 		return eventScoringsByEventSchool;
 	}
+	
+	
+	
+	
+	
+	
+	
+	
+	
 	public List<Integer> getSignedUpPlayers(int eventID,String desiredSchoolName){
 		School school = schoolRepository.findByName(desiredSchoolName);
 		int schoolID =  school.getID();
@@ -202,12 +258,17 @@ public class EventService {
 		event.setSlots(event.getSlots()+1);
 		repository.save(event);
 		eventScoringRepository.deleteById(id);
+		updatePlayerAverageScores();
 		return "Event Scoring " + id + " Deleted";
 	}
 	public String clear() {
 		repository.deleteAll();
 		eventScoringRepository.deleteAll();
 		return "ALL EVENTS AND EVENT SCORINGS CLEARED";
+	}
+
+	public List<PlayerAverageScore> findPlayerAverageScore() {
+		return eventScoringRepository.findPlayerAverageScore();
 	}
 	
 	

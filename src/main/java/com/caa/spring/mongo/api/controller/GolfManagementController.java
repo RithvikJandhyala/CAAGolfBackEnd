@@ -213,5 +213,13 @@ public class GolfManagementController {
 		return "Season reset";
 	}
 	
+	@GetMapping("/findAvgScores")
+	public String getPlayerAverageScores(){
+		return eventService.updatePlayerAverageScores();
+	}
+	
+	
+	
+	
 	
 }
