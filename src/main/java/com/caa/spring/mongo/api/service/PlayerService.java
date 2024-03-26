@@ -7,8 +7,13 @@ import java.util.Map;
 import java.util.Optional;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import com.caa.spring.mongo.api.service.EventService;
+import com.caa.spring.mongo.api.model.Event;
+import com.caa.spring.mongo.api.model.EventScoring;
 import com.caa.spring.mongo.api.model.Match;
 import com.caa.spring.mongo.api.model.Player;
+import com.caa.spring.mongo.api.repository.EventRepository;
+import com.caa.spring.mongo.api.repository.EventScoringRepository;
 import com.caa.spring.mongo.api.repository.PlayerRepository;
 import com.caa.spring.mongo.api.repository.SchoolRepository;
 @Service
@@ -17,6 +22,12 @@ public class PlayerService {
 	private PlayerRepository repository;
 	@Autowired
 	private SchoolRepository schoolRepository;
+	@Autowired
+	private EventScoringRepository eventScoringRepository;
+	@Autowired
+	private EventRepository eventRepository;
+	@Autowired
+	private EventService eventService;
 
 	public String savePlayer(Player player) {
 		int id = generateID(player);
@@ -86,7 +97,14 @@ public class PlayerService {
 	public List<Player> getPlayersBySchoolAndDivision(String school, String division){
 		return repository.findBySchoolAndDivision(school, division);
 	}
-	
+	public List<Player> getPlayersBySchoolAndEventDivision(String school,String division){
+		if (division.equals("JH|HS")) {
+			return repository.findBySchool(school,Sort.by(Sort.Direction.ASC, "playerID"));
+		}
+		else{
+			return repository.findBySchoolAndDivision(school, division);
+		}
+	}
 
 	public Optional<Player> getPlayer(int id){
 		return repository.findById(id);
@@ -94,6 +112,15 @@ public class PlayerService {
 	
 	public String deletePlayer(int id) {
 		repository.deleteById(id);
+		List<EventScoring> eventScorings = eventScoringRepository.findEventScoringByPlayerID(id);
+		for (EventScoring eventScoring : eventScorings) {
+			int eventID = eventScoring.getEventID();
+			Event event = eventRepository.findById((long) eventID).get();
+			event.setSlots(event.getSlots()+1);
+			eventRepository.save(event);
+			eventScoringRepository.delete(eventScoring);
+			eventService.updatePlayerAverageScores();
+		}
 		System.out.print("delete " + id);
 		return "Player deleted with  " + id;
 	}
@@ -136,9 +163,6 @@ public class PlayerService {
 				p1.setPointsWon(p1.getPointsWon()+match.getPlayer1Score());
 				p2.setPointsWon(p2.getPointsWon()+match.getPlayer2Score());
 			}
-			
-			
-			
 		}
 		repository.saveAll(players);
 		return "Player scores updated";

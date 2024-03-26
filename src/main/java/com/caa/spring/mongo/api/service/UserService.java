@@ -34,6 +34,10 @@ public class UserService {
 	}
 	
 	public String saveUser(User user) {
+		//check if user exists
+		Optional <User> myUser = repository.findById(user.getUsername());
+		if(myUser.isPresent() )			
+			return "User with this email already exists";		
 		repository.save(user);
 		System.out.println(user);
 		return "Created User with Username: " + user.getUsername();

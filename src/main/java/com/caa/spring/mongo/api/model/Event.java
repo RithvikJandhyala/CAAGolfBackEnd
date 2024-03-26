@@ -9,11 +9,11 @@ public class Event {
 	private String time;
 	private String golfCourse;
 	
-	//private String division;
+	private String division;
 	private String hostSchool;
 	private int teeTimes;
 	private int slots;
-	public Event(long id,String eventDate, String time, String golfCourse,String hostSchool,int teeTimes,int slots) {
+	public Event(long id,String eventDate, String time, String golfCourse,String hostSchool,int teeTimes,int slots,String division) {
 		this.id = id;
 		this.eventDate = eventDate;
 		this.time = time;
@@ -21,6 +21,7 @@ public class Event {
 		this.hostSchool = hostSchool;
 		this.teeTimes = teeTimes;
 		this.slots = slots;
+		this.division = division;
 	}
 	public long getId() {
 		return id;
@@ -63,6 +64,12 @@ public class Event {
 	}
 	public void setTime(String time) {
 		this.time = time;
+	}
+	public String getDivision() {
+		return division;
+	}
+	public void setDivision(String division) {
+		this.division = division;
 	}
 
 }

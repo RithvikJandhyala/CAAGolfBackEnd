@@ -10,7 +10,8 @@ import com.caa.spring.mongo.api.model.EventScoring;
 public interface EventScoringRepository extends MongoRepository<EventScoring, String>{
 	List<EventScoring> findEventScoringByEventID(int eventID);	
 	void deleteByEventID(int eventID);
-	List<EventScoring> findEventScoringByPlayerDivision(String division);	
+	List<EventScoring> findEventScoringByPlayerDivision(String division);
+	List<EventScoring> findEventScoringByPlayerID(int playerID);
 	List<EventScoring> findByEventIDIn(List<Long> eventIDs);
 	@Aggregation(pipeline = {
             "{ $group: { _id: '$playerID', totalScore: { $sum: '$playerScore' }, count: { $sum: 1 } } }",

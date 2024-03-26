@@ -29,6 +29,7 @@ import com.caa.spring.mongo.api.service.EventService;
 import com.caa.spring.mongo.api.service.CourseService;
 
 @CrossOrigin(origins = "https://www.azcaagolf.com")
+//@CrossOrigin(origins = "http://localhost:3000")
 @RestController
 public class GolfManagementController {
 	@Autowired
@@ -54,6 +55,10 @@ public class GolfManagementController {
 	@GetMapping("/findPlayersBySchool/{school}")
 	public List<Player> getPlayersBySchool(@PathVariable String school){
 		return playerService.getPlayersBySchool(school, Sort.by(Sort.Direction.ASC, "playerID"));
+	}
+	@GetMapping("/findPlayersBySchoolAndEventDivision/{school}/{division}")
+	public List<Player> getPlayersBySchoolAndEventDivision(@PathVariable String school, @PathVariable String division){
+		return playerService.getPlayersBySchoolAndEventDivision(school,division);
 	}
 	@GetMapping("/findPlayersBySchoolAndDivision/{school}/{division}")
 	public List<Player> getPlayersBySchoolAndDivision(@PathVariable String school, @PathVariable String division){
