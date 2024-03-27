@@ -63,8 +63,8 @@ public class EventService {
 		List<EventScoring> eventScorings = eventScoringRepository.findEventScoringByEventID((int)id);
 	    for (EventScoring eventScoring : eventScorings) {
 	        eventScoringRepository.delete(eventScoring);
-	        updatePlayerAverageScores();
 	    }
+        updatePlayerAverageScores();
 		System.out.print("delete " + id);
 		return "Event deleted with " + id;
 	}
@@ -72,13 +72,10 @@ public class EventService {
 	public String updatePlayerAverageScores(){ 
 		List<EventScoring> eventScorings = eventScoringRepository.findAll();
 		List<Player> players = playerRepository.findAll();
-		if(eventScorings.size() == 0) {
-			for (Player player : players) {
+		//set player ranking to 0 
+		for (Player player : players) 
 	            player.setRank(0);
-	        }
-			playerRepository.saveAll(players);
-			return "Updated Player Average Scores";
-		}
+		//calculate ranking based out of event scoring
 		List<EventScoring> filteredEventScorings = eventScorings.stream().filter(eventScoring -> eventScoring.getPlayerScore() != 0).collect(Collectors.toList());
 		Map<Integer, Double> averageScoresPerPlayer = filteredEventScorings.stream()
 	            .collect(Collectors.groupingBy(EventScoring::getPlayerID, Collectors.averagingInt(EventScoring::getPlayerScore)));
