@@ -29,7 +29,7 @@ import com.caa.spring.mongo.api.service.EventService;
 import com.caa.spring.mongo.api.service.CourseService;
 
 @CrossOrigin(origins = "https://www.azcaagolf.com")
-//@CrossOrigin(origins = "http://localhost:3000")
+//@CrossOrigin(origins = "http://192.168.1.39:3000")
 @RestController
 public class GolfManagementController {
 	@Autowired

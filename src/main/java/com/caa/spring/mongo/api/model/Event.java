@@ -1,6 +1,13 @@
 package com.caa.spring.mongo.api.model;
-
 import org.springframework.data.mongodb.core.mapping.Document;
+
+import lombok.Getter;
+import lombok.Setter;
+import lombok.ToString;
+
+@Getter
+@Setter
+@ToString
 
 @Document(collection = "Event")
 public class Event {
@@ -8,12 +15,12 @@ public class Event {
 	private String eventDate;
 	private String time;
 	private String golfCourse;
-	
 	private String division;
 	private String hostSchool;
 	private int teeTimes;
 	private int slots;
-	public Event(long id,String eventDate, String time, String golfCourse,String hostSchool,int teeTimes,int slots,String division) {
+	public double fee;
+	public Event(long id,String eventDate, String time, String golfCourse,String hostSchool,int teeTimes,int slots,String division, double fee) {
 		this.id = id;
 		this.eventDate = eventDate;
 		this.time = time;
@@ -22,6 +29,7 @@ public class Event {
 		this.teeTimes = teeTimes;
 		this.slots = slots;
 		this.division = division;
+		this.fee = fee;
 	}
 	public long getId() {
 		return id;
@@ -70,6 +78,12 @@ public class Event {
 	}
 	public void setDivision(String division) {
 		this.division = division;
+	}
+	public double getFee() {
+		return fee;
+	}
+	public void setFee(double fee) {
+		this.fee = fee;
 	}
 
 }

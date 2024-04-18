@@ -98,7 +98,7 @@ public class PlayerService {
 		return repository.findBySchoolAndDivision(school, division);
 	}
 	public List<Player> getPlayersBySchoolAndEventDivision(String school,String division){
-		if (division.equals("JH|HS")) {
+		if (division.equals("JH-HS")) {
 			return repository.findBySchool(school,Sort.by(Sort.Direction.ASC, "playerID"));
 		}
 		else{
